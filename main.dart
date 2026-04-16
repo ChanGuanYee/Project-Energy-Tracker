@@ -1,0 +1,51 @@
+import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'firebase_options.dart';
+import 'auth_service.dart';
+import 'home_screen.dart';
+import 'login_screen.dart';
+import 'appliance_provider.dart'; 
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => ApplianceProvider()),
+      ],
+      child: const EnergyTrackerApp(),
+    ),
+  );
+}
+
+class EnergyTrackerApp extends StatelessWidget {
+  const EnergyTrackerApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        primarySwatch: Colors.amber,
+        scaffoldBackgroundColor: Colors.grey[50],
+      ),
+      home: StreamBuilder(
+        stream: AuthService().user,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Scaffold(body: Center(child: CircularProgressIndicator(color: Colors.amber)));
+          }
+          
+          if (snapshot.hasData) {
+            return const HomeScreen(); 
+          }
+          
+          return const LoginScreen();
+        },
+      ),
+    );
+  }
+}
